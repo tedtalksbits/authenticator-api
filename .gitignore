@@ -1,0 +1,57 @@
+node_modules
+
+# env
+.env
+.env.*
+
+# debug
+npm-debug.log*
+
+
+# Log files
+*.log
+
+# Editor directories and files
+
+# IntelliJ
+.idea
+*.iml
+out/
+
+# VSCode
+.vscode/
+
+# Visual Studio
+.vs/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Visual Studio Code
+.vscode/
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# keys and certs
+*.key
+*.pem
+
+
