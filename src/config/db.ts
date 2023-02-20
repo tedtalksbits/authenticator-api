@@ -19,18 +19,18 @@ if (!process.env.MYSQL_DB) {
     throw new Error('MYSQL_DB is not defined');
 }
 
-const db = mysql.createConnection({
+const pool = mysql.createPool({
     host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASS,
     database: process.env.MYSQL_DB,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    maxIdle: 10,
+    idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
 });
 
-db.connect((err) => {
-    if (err) {
-        throw err;
-    }
-    console.log('Connected to MySQL');
-});
+const db = pool.promise();
 
 export default db;

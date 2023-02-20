@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import db from './config/db';
+import userRoutes from './routes/UserRoutes';
 
 const app = express();
 dotenv.config();
@@ -12,21 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Auth Routes
-app.use('/api/auth', (_req, res) => {
-    // test db connection
-    const query = 'SELECT * FROM users';
-    db.query(query, (err, result) => {
-        if (err) {
-            throw err;
-        }
-        res.send(result);
-    });
-});
-
-//  Protected Routes
-app.use('/api/protected', (_req, res) => {
-    res.send('Protected Routes');
-});
+app.use('/', userRoutes);
 
 const PORT = process.env.PORT || 5030;
 
