@@ -10,6 +10,7 @@ export class User {
     firstName: string;
     lastName: string;
     middleName: string;
+    phone: string;
 
     constructor(
         id: number,
@@ -20,7 +21,8 @@ export class User {
         updatedAt: Date,
         firstName: string,
         lastName: string,
-        middleName: string
+        middleName: string,
+        phone: string
     ) {
         this.id = id;
         this.username = username;
@@ -31,19 +33,21 @@ export class User {
         this.firstName = firstName;
         this.lastName = lastName;
         this.middleName = middleName;
+        this.phone = phone;
     }
 
     static fromSqlRow(sqlRow: any): User {
         return new User(
             sqlRow.id,
             sqlRow.username,
-            sqlRow.firstName,
-            sqlRow.lastName,
-            sqlRow.middleName,
             sqlRow.password,
             sqlRow.email,
             sqlRow.createdAt,
-            sqlRow.updatedAt
+            sqlRow.updatedAt,
+            sqlRow.firstName,
+            sqlRow.lastName,
+            sqlRow.middleName,
+            sqlRow.phone
         );
     }
 
@@ -53,7 +57,7 @@ export class User {
         email: string,
         firstName: string,
         lastName: string
-    ): Promise<any> {
+    ): Promise<User | null> {
         try {
             const [rows, _fields] = await db.query(
                 'INSERT INTO users (username, password, email, firstName, lastName) VALUES (?, ?, ?, ?, ?)',
@@ -73,11 +77,15 @@ export class User {
     //     return User.fromSqlRow(rows[0]);
     // }
 
-    // static async getByUsername(username: string): Promise<User | null> {
-    //     const [rows, fields] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
-    //     if (rows.length === 0) {
-    //         return null;
-    //     }
-    //     return User.fromSqlRow(rows[0]);
-    // }
+    static async findByUsername(username: string): Promise<User | null> {
+        try {
+            const [rows, _fields] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+            if (rows.length === 0) {
+                return null;
+            }
+            return User.fromSqlRow(rows[0]);
+        } catch (error) {
+            throw new Error(`Could not find user. Error: ${error.message}`);
+        }
+    }
 }
