@@ -55,3 +55,9 @@ pids
 *.pem
 
 
+# dist
+dist
+
+# build
+build
+
