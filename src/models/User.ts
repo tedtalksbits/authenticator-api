@@ -88,4 +88,16 @@ export class User {
             throw new Error(`Could not find user. Error: ${error.message}`);
         }
     }
+
+    static async findByEmail(email: string): Promise<User | null> {
+        try {
+            const [rows, _fields] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+            if (rows.length === 0) {
+                return null;
+            }
+            return User.fromSqlRow(rows[0]);
+        } catch (error) {
+            throw new Error(`Could not find user. Error: ${error.message}`);
+        }
+    }
 }
