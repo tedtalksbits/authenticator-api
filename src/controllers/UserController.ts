@@ -3,6 +3,7 @@ import { User } from '../models/User';
 import { Request, Response } from 'express';
 import CryptoJS from 'crypto-js';
 import jwt from 'jsonwebtoken';
+import { sendRestResponse } from '../middleware/sendRestResponse';
 
 export const createUser = async (req: Request, res: Response) => {
     const { username, email, firstName, lastName } = req.body;
@@ -20,13 +21,21 @@ export const createUser = async (req: Request, res: Response) => {
     const userExist = await User.findByUsername(username);
 
     if (userExist) {
-        return res.status(400).json({ message: `User with username: ${username} already exists` });
+        return sendRestResponse({
+            res,
+            data: { message: `User with username: ${username} already exists` },
+            status: 400,
+        });
     }
 
     const emailExist = await User.findByEmail(email);
 
     if (emailExist) {
-        return res.status(400).json({ message: `User with email: ${email} already exists` });
+        return sendRestResponse({
+            res,
+            data: { message: `User with email: ${email} already exists` },
+            status: 400,
+        });
     }
 
     // validate username
@@ -58,9 +67,9 @@ export const createUser = async (req: Request, res: Response) => {
 
     try {
         const result = await User.create(username, password, email, firstName, lastName);
-        return res.status(201).json(result);
+        return sendRestResponse({ res, data: result, status: 201 });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return sendRestResponse({ res, data: { message: error.message }, status: 500 });
     }
 };
 

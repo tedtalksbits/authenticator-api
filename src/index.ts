@@ -22,7 +22,7 @@ app.use(
 );
 
 // Auth Routes
-app.use('/', userRoutes);
+app.use('/users', userRoutes);
 
 // Protected Routes
 app.use('/accounts', accountRoutes);
