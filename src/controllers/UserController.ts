@@ -106,7 +106,11 @@ export const loginUser = async (req: Request, res: Response) => {
             { expiresIn: '1h' }
         );
 
-        return res.status(200).cookie('token', token, { httpOnly: true }).json({ message: 'Login successful' });
+        return res
+            .status(200)
+            .cookie('token', token, { httpOnly: true })
+            .header('cookie', token)
+            .send({ message: 'Login successful' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
