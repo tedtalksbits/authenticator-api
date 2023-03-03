@@ -1,8 +1,8 @@
 import { Response } from 'express';
 
-type RestResponse<T> = {
+export type RestResponse<T> = {
     status: number;
-    message: string;
+    message?: string;
     data: T;
     links?: {
         self: string;
@@ -10,10 +10,17 @@ type RestResponse<T> = {
     };
 };
 
-export function sendRestResponse<T>({ res, data, status = 200 }: { res: Response; data: T; status?: number }) {
+type SendRestResponseOptions<T> = {
+    res: Response;
+    data: T;
+    status?: number;
+    message?: string;
+};
+
+export function sendRestResponse<T>({ res, data, status = 200, message }: SendRestResponseOptions<T>) {
     const response: RestResponse<T> = {
         data,
-        message: 'OK',
+        message,
         status,
         links: {
             self: res.req.originalUrl,
