@@ -10,7 +10,6 @@ export const createUser = async (req: Request, res: Response) => {
     let { password } = req.body;
 
     if (!username || !password || !email || !firstName || !lastName) {
-        // return res.status(400).json({ message: 'Missing required fields' });
         return sendRestResponse({
             res,
             data: null,
@@ -67,16 +66,6 @@ export const createUser = async (req: Request, res: Response) => {
             `,
             status: 400,
         });
-        // return res.status(400).json({
-        //     message: 'Invalid input',
-        //     errors: {
-        //         username: usernameErrMsg,
-        //         email: emailErrMsg,
-        //         password: passwordErrMsg,
-        //         firstName: firstNameErrMsg,
-        //         lastName: lastNameErrMsg,
-        //     },
-        // });
     }
 
     // encrypt password
@@ -103,7 +92,6 @@ export const loginUser = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-        // return res.status(400).json({ message: 'Missing required fields' });
         return sendRestResponse({
             res,
             data: null,
@@ -117,7 +105,6 @@ export const loginUser = async (req: Request, res: Response) => {
         console.log(user);
 
         if (!user) {
-            // return res.status(400).json({ message: `Could not find user with username: ${username}` });
             return sendRestResponse({
                 res,
                 data: null,
@@ -133,7 +120,6 @@ export const loginUser = async (req: Request, res: Response) => {
         ).toString(CryptoJS.enc.Utf8);
 
         if (password !== decryptedPw) {
-            // return res.status(400).json({ message: 'Invalid password' });
             return sendRestResponse({
                 res,
                 data: null,
