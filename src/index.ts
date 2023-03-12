@@ -5,6 +5,7 @@ import cookieSession from 'cookie-session';
 import dotenv from 'dotenv';
 import userRoutes from './routes/UserRoutes';
 import accountRoutes from './routes/AccountRoutes';
+import authRoutes from './routes/AuthRoutes';
 const app = express();
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(
 
 // Auth Routes
 app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
 
 // Protected Routes
 app.use('/accounts', accountRoutes);
