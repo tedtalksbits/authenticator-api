@@ -3,17 +3,26 @@ import { Account } from '../models/Account';
 import { sendRestResponse } from '../middleware/sendRestResponse';
 
 export const create = async (req: Request, res: Response) => {
-    const { username, website, logo, userId } = req.body;
-    let { password } = req.body;
+    let { username, website, logo, userId, password } = req.body;
 
     if (!username) {
         return sendRestResponse({
             res,
             data: null,
-            message: 'Missing required fields',
+            message: 'Missing required field: username',
             status: 400,
         });
     }
+    if (!userId) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Missing required field: userId',
+            status: 400,
+        });
+    }
+
+    // TODO: encrypt password
 
     try {
         const result = await Account.create(username, password, website, logo, userId);
