@@ -45,21 +45,18 @@ export class Account {
 
     static async create(
         username: string,
-        password: string,
-        website: string,
-        logo: string,
+        password: string | null = null,
+        website: string | null = null,
+        logo: string | null = null,
         userId: number
     ): Promise<Account | null> {
         try {
-            const result = await db.query(
-                'INSERT INTO accounts (username, password, website, logo, userId) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            const [rows, _fields] = await db.query(
+                'INSERT INTO accounts (username, password, website, logo, userId) VALUES (?, ?, ?, ?, ?)',
                 [username, password, website, logo, userId]
             );
 
-            if (result.rowCount < 1) {
-                return null;
-            }
-            return Account.fromSqlRow(result.rows[0]);
+            return rows;
         } catch (error) {
             throw new Error(`Unable to create account. Error: ${error.message}`);
         }
