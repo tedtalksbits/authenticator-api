@@ -18,11 +18,6 @@ export const createUser = async (req: Request, res: Response) => {
         });
     }
 
-    /*
-        :TODO: encrypt password
-        
-    */
-
     const userExist = await User.findByUsername(username);
 
     if (userExist) {
@@ -70,15 +65,25 @@ export const createUser = async (req: Request, res: Response) => {
 
     // encrypt password
 
-    let hash = CryptoJS.AES.encrypt(password, process.env.SECRET_KEY || password.splice(0, 8)).toString(); // TODO: change this to a better encryption method
+    let hash = CryptoJS.AES.encrypt(password, process.env.SECRET_KEY || password.splice(0, 8)).toString();
 
     password = hash;
 
     try {
         const result = await User.create(username, password, email, firstName, lastName);
-        return sendRestResponse({ res, data: result, message: 'User created', status: 201 });
+        return sendRestResponse({
+            res,
+            data: result,
+            message: 'User created',
+            status: 201,
+        });
     } catch (error) {
-        return sendRestResponse({ res, data: null, message: error.message, status: 500 });
+        return sendRestResponse({
+            res,
+            data: null,
+            message: error.message,
+            status: 500,
+        });
     }
 };
 
@@ -120,10 +125,13 @@ export const loginUser = async (req: Request, res: Response) => {
         ).toString(CryptoJS.enc.Utf8);
 
         if (password !== decryptedPw) {
+            // password is incorrect, clear cookie and session
+            res.clearCookie('access_token');
+            req.session = null;
             return sendRestResponse({
                 res,
                 data: null,
-                status: 400,
+                status: 401,
                 message: 'Invalid password',
             });
         }
@@ -137,7 +145,11 @@ export const loginUser = async (req: Request, res: Response) => {
             { expiresIn: '1h' }
         );
 
-        res.cookie('access_token', token, { httpOnly: true, sameSite: 'none', secure: true, maxAge: 3600000 });
+        req.session = {
+            user: { id: user.id, username: user.username, token },
+        };
+
+        // res.cookie('access_token', token, { httpOnly: true, sameSite: 'none', secure: true, maxAge: 3600000 });
 
         return sendRestResponse({
             res,
