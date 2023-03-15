@@ -1,7 +1,7 @@
 import db from '../config/db';
 
 export class User {
-    id: number;
+    id: string;
     username: string;
     password: string;
     email: string;
@@ -13,7 +13,7 @@ export class User {
     phone: string;
 
     constructor(
-        id: number,
+        id: string,
         username: string,
         password: string,
         email: string,
