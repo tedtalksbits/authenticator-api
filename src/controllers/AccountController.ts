@@ -41,3 +41,36 @@ export const create = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const getAll = async (req: Request, res: Response) => {
+    // only get accounts for the user that is logged in
+    console.log(req.session);
+    const userId = req.session?.user?.id;
+
+    if (!userId) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Missing required field: userId',
+            status: 400,
+        });
+    }
+    try {
+        const result = await Account.findAll(userId);
+
+        let message = result.length > 0 ? 'Accounts retrieved successfully' : 'No accounts found';
+        return sendRestResponse({
+            res,
+            data: result,
+            message: message,
+            status: 200,
+        });
+    } catch (error) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: error.message,
+            status: 500,
+        });
+    }
+};

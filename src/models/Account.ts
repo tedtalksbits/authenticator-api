@@ -61,4 +61,54 @@ export class Account {
             throw new Error(`Unable to create account. Error: ${error.message}`);
         }
     }
+
+    static async findAll(userId: string): Promise<Account[]> {
+        try {
+            const [rows, _fields] = await db.query('SELECT * FROM accounts WHERE userId = ?', [userId]);
+
+            return rows;
+        } catch (error) {
+            throw new Error(`Unable to get accounts. Error: ${error.message}`);
+        }
+    }
+
+    static async findOne(id: number): Promise<Account | null> {
+        try {
+            const [rows, _fields] = await db.query('SELECT * FROM accounts WHERE id = ?', [id]);
+
+            return rows;
+        } catch (error) {
+            throw new Error(`Unable to get account. Error: ${error.message}`);
+        }
+    }
+
+    static async update(
+        id: number,
+        username: string,
+        password: string | null = null,
+        website: string | null = null,
+        logo: string | null = null,
+        userId: number
+    ): Promise<Account | null> {
+        try {
+            const [rows, _fields] = await db.query(
+                'UPDATE accounts SET username = ?, password = ?, website = ?, logo = ?, userId = ? WHERE id = ?',
+                [username, password, website, logo, userId, id]
+            );
+
+            return rows;
+        } catch (error) {
+            throw new Error(`Unable to update account. Error: ${error.message}`);
+        }
+    }
+
+    static async remove(id: number): Promise<Account | null> {
+        try {
+            const [rows, _fields] = await db.query('DELETE FROM accounts WHERE id = ?', [id]);
+
+            return rows;
+        } catch (error) {
+            throw new Error(`Unable to delete account. Error: ${error.message}`);
+        }
+    }
 }
