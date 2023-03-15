@@ -88,12 +88,6 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-    /*
-        :TODO: Add validation for username and password
-        :TODO: Add JWT token
-        :TODO: Add bcrypt for password
-
-    */
     const { username, password } = req.body;
 
     if (!username || !password) {

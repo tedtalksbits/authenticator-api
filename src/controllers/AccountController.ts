@@ -43,11 +43,10 @@ export const create = async (req: Request, res: Response) => {
 };
 
 export const getAll = async (req: Request, res: Response) => {
-    // only get accounts for the user that is logged in
-    console.log(req.session);
-    const userId = req.session?.user?.id;
+    // TODO: should we use the userId from the request param or the session? or both?
 
-    if (!userId) {
+    const reqUserId = req.query.userId;
+    if (!reqUserId) {
         return sendRestResponse({
             res,
             data: null,
@@ -55,8 +54,29 @@ export const getAll = async (req: Request, res: Response) => {
             status: 400,
         });
     }
+    // TODO: find out why this is a number
+    const sessionUserId = req.session?.user?.id.toString();
+    if (!sessionUserId) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Missing required field: userId',
+            status: 400,
+        });
+    }
+
+    if (reqUserId !== sessionUserId) {
+        req.session = null;
+
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Unauthorized',
+            status: 401,
+        });
+    }
     try {
-        const result = await Account.findAll(userId);
+        const result = await Account.findAll(sessionUserId);
 
         let message = result.length > 0 ? 'Accounts retrieved successfully' : 'No accounts found';
         return sendRestResponse({
