@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { sendRestResponse } from './sendRestResponse';
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
+
+export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.session?.user?.token;
 
     if (!token) {
@@ -14,8 +15,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     }
     try {
         if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not defined!');
-        // TODO: create a type for the decoded token
-        jwt.verify(token, process.env.JWT_SECRET) as { id: string; username: string };
+        jwt.verify(token, process.env.JWT_SECRET);
 
         next();
         return;
@@ -57,4 +57,53 @@ export const whoAmI = async (req: Request, res: Response) => {
             status: 500,
         });
     }
+};
+
+// create a middleware that calls auth and then whoAmI
+
+export const verifiedTokenAndAuthorized = async (req: Request, res: Response, next: NextFunction) => {
+    await verifyToken(req, res, () => {
+        // if userId sent as part of a request, and it doesn't match the userId in the session, then return 401
+
+        const { userId: reqQueryUserId } = req.query;
+        const { userId: reqBodyUserId } = req.body;
+        const { userId: reqParamsUserId } = req.params;
+
+        const sessionUserId = req.session?.user?.id.toString();
+
+        if (reqQueryUserId && reqQueryUserId.toString() !== sessionUserId) {
+            req.session = null;
+
+            return sendRestResponse({
+                res,
+                data: null,
+                message: 'Unauthorized',
+                status: 401,
+            });
+        }
+
+        if (reqBodyUserId && reqBodyUserId.toString() !== sessionUserId) {
+            req.session = null;
+
+            return sendRestResponse({
+                res,
+                data: null,
+                message: 'Unauthorized',
+                status: 401,
+            });
+        }
+
+        if (reqParamsUserId && reqParamsUserId.toString() !== sessionUserId) {
+            req.session = null;
+
+            return sendRestResponse({
+                res,
+                data: null,
+                message: 'Unauthorized',
+                status: 401,
+            });
+        }
+
+        next();
+    });
 };

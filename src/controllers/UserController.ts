@@ -120,7 +120,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
         if (password !== decryptedPw) {
             // password is incorrect, clear cookie and session
-            res.clearCookie('access_token');
+
             req.session = null;
             return sendRestResponse({
                 res,

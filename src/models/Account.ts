@@ -62,13 +62,21 @@ export class Account {
         }
     }
 
-    static async findAll(userId: string): Promise<Account[]> {
+    static async findAll(userId: string, orderBy?: string, order?: string): Promise<Account[]> {
+        if (!orderBy) orderBy = 'id';
+        if (!order) order = 'ASC';
+        const query = `SELECT * FROM accounts WHERE userId = ? ORDER BY accounts.${orderBy} ${order}`;
         try {
-            const [rows, _fields] = await db.query('SELECT * FROM accounts WHERE userId = ?', [userId]);
+            const [rows, _fields] = await db.query(query, [userId]);
 
             return rows;
         } catch (error) {
-            throw new Error(`Unable to get accounts. Error: ${error.message}`);
+            throw new Error(
+                JSON.stringify({
+                    message: `Unable to get accounts. Error: ${error.message}`,
+                    query: error.query,
+                })
+            );
         }
     }
 

@@ -1,13 +1,13 @@
 import express from 'express';
 import { create, getAll } from '../controllers/AccountController';
-import { auth } from '../middleware/auth';
+import { verifyToken, verifiedTokenAndAuthorized } from '../middleware/auth';
 
 const router = express.Router();
 
-router.post('/', auth, create);
-router.get('/', auth, getAll);
+router.post('/', verifiedTokenAndAuthorized, create);
+router.get('/', verifiedTokenAndAuthorized, getAll);
 
-router.get('/', auth, (_req, res) => {
+router.get('/', verifyToken, (_req, res) => {
     console.log('Hello World!');
     res.json({ message: 'Hello World!' });
 });
