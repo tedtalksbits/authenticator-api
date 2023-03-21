@@ -1,14 +1,16 @@
 import express from 'express';
-import { createUser, loginUser } from '../controllers/UserController';
+import { createUser, createUserWithRole, loginUser } from '../controllers/UserController';
+import { verifiedTokenAndAuthorized } from '../middleware/auth';
 // import { auth } from '../middleware/auth';
 
 const router = express.Router();
 
-// Auth Routes
-
-router.post('/', createUser);
-
+// Application Routes
 router.post('/login', loginUser);
+router.post('/register', verifiedTokenAndAuthorized, createUserWithRole);
+
+// Public Routes
+router.post('/', createUser);
 
 // router.get('/logout', logoutUser);
 

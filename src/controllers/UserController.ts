@@ -1,15 +1,15 @@
-import { validateEmail, validateName, validatePassword, validateUsername } from '../lib/Validator';
-import { User } from '../models/User';
+import { validatePassword, validateUsername } from '../lib/Validator';
 import { Request, Response } from 'express';
 import CryptoJS from 'crypto-js';
 import jwt from 'jsonwebtoken';
 import { sendRestResponse } from '../middleware/sendRestResponse';
+import { findByUsername, insertOne } from '../services/userServices';
 
 export const createUser = async (req: Request, res: Response) => {
-    const { username, email, firstName, lastName } = req.body;
+    const { username } = req.body;
     let { password } = req.body;
 
-    if (!username || !password || !email || !firstName || !lastName) {
+    if (!username || !password) {
         return sendRestResponse({
             res,
             data: null,
@@ -18,46 +18,37 @@ export const createUser = async (req: Request, res: Response) => {
         });
     }
 
-    const userExist = await User.findByUsername(username);
-
-    if (userExist) {
+    try {
+        const userExist = await findByUsername(username);
+        if (userExist) {
+            return sendRestResponse({
+                res,
+                data: null,
+                message: `User with username: ${username} already exists`,
+                status: 400,
+            });
+        }
+    } catch (error) {
         return sendRestResponse({
             res,
             data: null,
-            message: `User with username: ${username} already exists`,
-            status: 400,
-        });
-    }
-
-    const emailExist = await User.findByEmail(email);
-
-    if (emailExist) {
-        return sendRestResponse({
-            res,
-            data: null,
-            message: `User with email: ${email} already exists`,
-            status: 400,
+            message: 'Could not create user',
+            status: 500,
         });
     }
 
     // validate username
 
     const { error: usernameError, message: usernameErrMsg } = validateUsername(username);
-    const { error: emailError, message: emailErrMsg } = validateEmail(email);
     const { error: passwordError, message: passwordErrMsg } = validatePassword(password);
-    const { error: firstNameError, message: firstNameErrMsg } = validateName(firstName);
-    const { error: lastNameError, message: lastNameErrMsg } = validateName(lastName);
 
-    if (usernameError || emailError || passwordError || firstNameError || lastNameError) {
+    if (usernameError || passwordError) {
         return sendRestResponse({
             res,
             data: null,
             message: `
                 ${usernameError ? usernameErrMsg : ''} 
-                ${emailError ? emailErrMsg : ''} 
                 ${passwordError ? passwordErrMsg : ''} 
-                ${firstNameError ? firstNameErrMsg : ''} 
-                ${lastNameError ? lastNameErrMsg : ''}
             `,
             status: 400,
         });
@@ -70,7 +61,7 @@ export const createUser = async (req: Request, res: Response) => {
     password = hash;
 
     try {
-        const result = await User.create(username, password, email, firstName, lastName);
+        const result = await insertOne(username, password);
         return sendRestResponse({
             res,
             data: result,
@@ -82,6 +73,77 @@ export const createUser = async (req: Request, res: Response) => {
             res,
             data: null,
             message: error.message,
+            status: 500,
+        });
+    }
+};
+
+export const createUserWithRole = async (req: Request, res: Response) => {
+    const { username, roleId } = req.body;
+    let { password } = req.body;
+
+    if (!username || !password || !roleId) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Missing required fields',
+            status: 400,
+        });
+    }
+
+    try {
+        const userExist = await findByUsername(username);
+        if (userExist) {
+            return sendRestResponse({
+                res,
+                data: null,
+                message: `User with username: ${username} already exists`,
+                status: 400,
+            });
+        }
+    } catch (error) {
+        console.log('could not find user, db error');
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Could not create user',
+            status: 500,
+        });
+    }
+
+    // validate username
+
+    const { error: usernameError, message: usernameErrMsg } = validateUsername(username);
+
+    if (usernameError) {
+        return sendRestResponse({
+            res,
+            data: null,
+            message: usernameErrMsg,
+            status: 400,
+        });
+    }
+
+    // encrypt password
+
+    let hash = CryptoJS.AES.encrypt(password, process.env.SECRET_KEY || password.splice(0, 8)).toString();
+
+    password = hash;
+
+    try {
+        const result = await insertOne(username, password, roleId);
+        return sendRestResponse({
+            res,
+            data: result,
+            message: 'User created',
+            status: 201,
+        });
+    } catch (error) {
+        console.log('could not create user, db error');
+        return sendRestResponse({
+            res,
+            data: null,
+            message: 'Could not create user',
             status: 500,
         });
     }
@@ -100,7 +162,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     try {
-        const user = await User.findByUsername(username);
+        const user = await findByUsername(username);
         console.log(user);
 
         if (!user) {
@@ -134,14 +196,22 @@ export const loginUser = async (req: Request, res: Response) => {
             {
                 id: user.id,
                 username: user.username,
+                roleId: user.role_id,
             },
             process.env.JWT_SECRET || password.splice(0, 8),
             { expiresIn: '1h' }
         );
 
         req.session = {
-            user: { id: user.id, username: user.username, token },
+            user: {
+                id: user.id,
+                username: user.username,
+                roleId: user.role_id,
+                token,
+            },
         };
+
+        console.log(req.session);
 
         // res.cookie('access_token', token, { httpOnly: true, sameSite: 'none', secure: true, maxAge: 3600000 });
 

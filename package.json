@@ -9,7 +9,7 @@
     "dev": "nodemon dist/index.js",
     "build": "tsc",
     "watch": "tsc -w",
-    "dev:watch": "npm run watch & npm run dev"
+    "dev:watch": "concurrently \"npm run watch\" \"npm run dev\""
   },
   "keywords": [],
   "author": "",

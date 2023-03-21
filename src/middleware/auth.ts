@@ -65,11 +65,25 @@ export const verifiedTokenAndAuthorized = async (req: Request, res: Response, ne
     await verifyToken(req, res, () => {
         // if userId sent as part of a request, and it doesn't match the userId in the session, then return 401
 
+        console.log('req.session', req.session);
+
         const { userId: reqQueryUserId } = req.query;
         const { userId: reqBodyUserId } = req.body;
         const { userId: reqParamsUserId } = req.params;
 
         const sessionUserId = req.session?.user?.id.toString();
+        const sessionRoleId = req.session?.user?.roleId;
+
+        const isSuperAdmin = sessionRoleId === '400';
+
+        if (!isSuperAdmin) {
+            return sendRestResponse({
+                res,
+                data: null,
+                message: `Unauthorized - role: ${sessionRoleId}`,
+                status: 401,
+            });
+        }
 
         if (reqQueryUserId && reqQueryUserId.toString() !== sessionUserId) {
             req.session = null;
