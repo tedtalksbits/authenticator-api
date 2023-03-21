@@ -34,8 +34,7 @@ export const validatePassword = (password: string): Validator => {
     if (!passwordRegex.test(password)) {
         return {
             error: true,
-            message:
-                'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number',
+            message: `Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number`,
         };
     }
     return {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { sendRestResponse } from './sendRestResponse';
+import { getRoles } from '../services/authServices';
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.session?.user?.token;
@@ -61,8 +62,8 @@ export const whoAmI = async (req: Request, res: Response) => {
 
 // create a middleware that calls auth and then whoAmI
 
-export const verifiedTokenAndAuthorized = async (req: Request, res: Response, next: NextFunction) => {
-    await verifyToken(req, res, () => {
+export const verifiedTokenAndSuperUser = async (req: Request, res: Response, next: NextFunction) => {
+    await verifyToken(req, res, async () => {
         // if userId sent as part of a request, and it doesn't match the userId in the session, then return 401
 
         console.log('req.session', req.session);
@@ -74,7 +75,10 @@ export const verifiedTokenAndAuthorized = async (req: Request, res: Response, ne
         const sessionUserId = req.session?.user?.id.toString();
         const sessionRoleId = req.session?.user?.roleId;
 
-        const isSuperAdmin = sessionRoleId === '400';
+        const roles = await getRoles();
+        console.log('roles', roles);
+        const superAdminRole = roles.find((role) => role.role_type === 'super');
+        const isSuperAdmin = sessionRoleId === superAdminRole?.id;
 
         if (!isSuperAdmin) {
             return sendRestResponse({
@@ -85,38 +89,38 @@ export const verifiedTokenAndAuthorized = async (req: Request, res: Response, ne
             });
         }
 
-        if (reqQueryUserId && reqQueryUserId.toString() !== sessionUserId) {
-            req.session = null;
+        // if (reqQueryUserId && reqQueryUserId.toString() !== sessionUserId) {
+        //     req.session = null;
 
-            return sendRestResponse({
-                res,
-                data: null,
-                message: 'Unauthorized',
-                status: 401,
-            });
-        }
+        //     return sendRestResponse({
+        //         res,
+        //         data: null,
+        //         message: 'Unauthorized',
+        //         status: 401,
+        //     });
+        // }
 
-        if (reqBodyUserId && reqBodyUserId.toString() !== sessionUserId) {
-            req.session = null;
+        // if (reqBodyUserId && reqBodyUserId.toString() !== sessionUserId) {
+        //     req.session = null;
 
-            return sendRestResponse({
-                res,
-                data: null,
-                message: 'Unauthorized',
-                status: 401,
-            });
-        }
+        //     return sendRestResponse({
+        //         res,
+        //         data: null,
+        //         message: 'Unauthorized',
+        //         status: 401,
+        //     });
+        // }
 
-        if (reqParamsUserId && reqParamsUserId.toString() !== sessionUserId) {
-            req.session = null;
+        // if (reqParamsUserId && reqParamsUserId.toString() !== sessionUserId) {
+        //     req.session = null;
 
-            return sendRestResponse({
-                res,
-                data: null,
-                message: 'Unauthorized',
-                status: 401,
-            });
-        }
+        //     return sendRestResponse({
+        //         res,
+        //         data: null,
+        //         message: 'Unauthorized',
+        //         status: 401,
+        //     });
+        // }
 
         next();
     });

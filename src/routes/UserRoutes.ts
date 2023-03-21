@@ -1,13 +1,13 @@
 import express from 'express';
 import { createUser, createUserWithRole, loginUser } from '../controllers/UserController';
-import { verifiedTokenAndAuthorized } from '../middleware/auth';
+import { verifiedTokenAndSuperUser } from '../middleware/auth';
 // import { auth } from '../middleware/auth';
 
 const router = express.Router();
 
 // Application Routes
 router.post('/login', loginUser);
-router.post('/register', verifiedTokenAndAuthorized, createUserWithRole);
+router.post('/register', verifiedTokenAndSuperUser, createUserWithRole);
 
 // Public Routes
 router.post('/', createUser);

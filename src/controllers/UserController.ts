@@ -46,10 +46,7 @@ export const createUser = async (req: Request, res: Response) => {
         return sendRestResponse({
             res,
             data: null,
-            message: `
-                ${usernameError ? usernameErrMsg : ''} 
-                ${passwordError ? passwordErrMsg : ''} 
-            `,
+            message: `${usernameError ? usernameErrMsg : ''}${passwordError ? passwordErrMsg : ''}`,
             status: 400,
         });
     }
@@ -79,10 +76,10 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 export const createUserWithRole = async (req: Request, res: Response) => {
-    const { username, roleId } = req.body;
+    const { username, role_id } = req.body;
     let { password } = req.body;
 
-    if (!username || !password || !roleId) {
+    if (!username || !password || !role_id) {
         return sendRestResponse({
             res,
             data: null,
@@ -114,12 +111,13 @@ export const createUserWithRole = async (req: Request, res: Response) => {
     // validate username
 
     const { error: usernameError, message: usernameErrMsg } = validateUsername(username);
+    const { error: passwordError, message: passwordErrMsg } = validatePassword(password);
 
     if (usernameError) {
         return sendRestResponse({
             res,
             data: null,
-            message: usernameErrMsg,
+            message: `${usernameError ? usernameErrMsg : ''}${passwordError ? passwordErrMsg : ''}`,
             status: 400,
         });
     }
@@ -131,7 +129,7 @@ export const createUserWithRole = async (req: Request, res: Response) => {
     password = hash;
 
     try {
-        const result = await insertOne(username, password, roleId);
+        const result = await insertOne(username, password, role_id);
         return sendRestResponse({
             res,
             data: result,
