@@ -68,11 +68,11 @@ export const verifiedTokenAndSuperUser = async (req: Request, res: Response, nex
 
         console.log('req.session', req.session);
 
-        const { userId: reqQueryUserId } = req.query;
-        const { userId: reqBodyUserId } = req.body;
-        const { userId: reqParamsUserId } = req.params;
+        // const { userId: reqQueryUserId } = req.query;
+        // const { userId: reqBodyUserId } = req.body;
+        // const { userId: reqParamsUserId } = req.params;
 
-        const sessionUserId = req.session?.user?.id.toString();
+        // const sessionUserId = req.session?.user?.id.toString();
         const sessionRoleId = req.session?.user?.roleId;
 
         const roles = await getRoles();

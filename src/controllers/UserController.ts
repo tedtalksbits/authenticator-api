@@ -148,7 +148,7 @@ export const createUserWithRole = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-    const { username, password } = req.body;
+    const { username, password } = req.body as { username: string; password: string }
 
     if (!username || !password) {
         return sendRestResponse({
@@ -172,15 +172,12 @@ export const loginUser = async (req: Request, res: Response) => {
             });
         }
 
-        // decrypt password
         const decryptedPw = CryptoJS.AES.decrypt(
             user.password,
-            process.env.SECRET_KEY || password.splice(0, 8)
+            process.env.SECRET_KEY || password.slice(0, 8)
         ).toString(CryptoJS.enc.Utf8);
 
         if (password !== decryptedPw) {
-            // password is incorrect, clear cookie and session
-
             req.session = null;
             return sendRestResponse({
                 res,
@@ -196,7 +193,7 @@ export const loginUser = async (req: Request, res: Response) => {
                 username: user.username,
                 roleId: user.role_id,
             },
-            process.env.JWT_SECRET || password.splice(0, 8),
+            process.env.JWT_SECRET || password.slice(0, 8),
             { expiresIn: '1h' }
         );
 
@@ -215,7 +212,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
         return sendRestResponse({
             res,
-            data: { id: user.id, username: user.username },
+            data: { id: user.id, username: user.username, roleId: user.role_id },
             message: 'Login successful',
             status: 200,
         });

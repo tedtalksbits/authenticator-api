@@ -6,30 +6,32 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/UserRoutes';
 import accountRoutes from './routes/AccountRoutes';
 import authRoutes from './routes/AuthRoutes';
+import complianceIncidentRoutes from './routes/IncidentsRoutes';
 const app = express();
 dotenv.config();
 
 // Middleware
 app.use(
-    cors({
-        origin: 'http://localhost:5173',
-        credentials: true,
-    })
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set('trust proxy', 1);
 app.use(
-    cookieSession({
-        name: 'session',
-        secret: process.env.SESSION_SECRET,
-    })
+  cookieSession({
+    name: 'session',
+    secret: process.env.SESSION_SECRET,
+  })
 );
 
 // Auth Routes
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/incidents', complianceIncidentRoutes);
 
 // Protected Routes
 app.use('/accounts', accountRoutes);
@@ -37,5 +39,5 @@ app.use('/accounts', accountRoutes);
 const PORT = process.env.PORT || 5030;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

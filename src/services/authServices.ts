@@ -9,3 +9,4 @@ export const getRoles = async (): Promise<Role[]> => {
         throw new Error(`Could not find roles. Error: ${error.message}`);
     }
 };
+
