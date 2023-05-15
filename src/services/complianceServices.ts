@@ -2,28 +2,49 @@ import {
   IncidentSiblingType,
   IncidentType,
   IncidentWithoutSiblingsType,
-} from 'src/types/incidentType';
+} from '../types/incidentType';
 
 import incidentJson from '../data/incidents.json';
+import { IncidentDAO } from '../data/incidentDAO';
+import { removeSiblingsFromIncident } from '../lib/incidentWithoutSiblings';
 
 export const getAll = async (
-  limit: number = 50
+  limit: number,
+  filters: { [key: string]: string }
 ): Promise<IncidentWithoutSiblingsType[]> => {
-  !limit ? (limit = 50) : limit;
-
-  return new Promise((resolve, reject) => {
-    if (incidentJson) {
-      const incidentsWithoutSiblings = incidentJson.map(
-        (incident: IncidentType) => {
-          const { siblings, ...incidentWithoutSiblings } = incident;
-          return incidentWithoutSiblings;
-        }
-      );
-      resolve(incidentsWithoutSiblings.slice(0, limit));
-    } else {
-      reject('Could not find incidents');
+  const { group, type, status, state, ch_name } = filters;
+  const filteredIncidents = incidentJson.filter((incident: IncidentType) => {
+    if (group && incident.group !== group) {
+      return false;
     }
+
+    if (type && incident.type !== type) {
+      return false;
+    }
+
+    if (status && incident.status !== status) {
+      return false;
+    }
+
+    if (state && incident.state !== state) {
+      return false;
+    }
+
+    if (ch_name && !incident.ch_name.includes(ch_name)) {
+      return false;
+    }
+
+    return true;
   });
+
+  const incidentsWithoutSiblings = filteredIncidents.map(
+    (incident: IncidentType) => {
+      const incidentWithoutSiblings = removeSiblingsFromIncident(incident);
+      return incidentWithoutSiblings;
+    }
+  );
+
+  return incidentsWithoutSiblings.slice(0, limit);
 };
 
 export const findById = async (
@@ -34,7 +55,7 @@ export const findById = async (
   );
   return new Promise((resolve, reject) => {
     if (incident) {
-      const { siblings, ...incidentWithoutSiblings } = incident;
+      const incidentWithoutSiblings = removeSiblingsFromIncident(incident);
       resolve(incidentWithoutSiblings);
     } else {
       reject('Could not find incident');
@@ -51,6 +72,20 @@ export const getIncidentSiblings = async (
   return new Promise((resolve, reject) => {
     if (incident) {
       resolve(incident.siblings);
+    } else {
+      reject('Could not find incident');
+    }
+  });
+};
+
+export const updateIncident = async (
+  id: number,
+  newIncident: IncidentType
+): Promise<IncidentWithoutSiblingsType> => {
+  const incidentsWithoutSiblings = IncidentDAO.updateIncident(id, newIncident);
+  return new Promise((resolve, reject) => {
+    if (incidentsWithoutSiblings) {
+      resolve(incidentsWithoutSiblings);
     } else {
       reject('Could not find incident');
     }
