@@ -1,12 +1,7 @@
 import { IncidentType } from '../types/incidentType';
 import { sendRestResponse } from '../middleware/sendRestResponse';
-import {
-  findById,
-  getAll,
-  getIncidentSiblings,
-  updateIncident,
-} from '../services/complianceServices';
 import { Request, Response } from 'express';
+import { IncidentDAO } from '../data/incidentDAO';
 export const getAllIncidents = async (req: Request, res: Response) => {
   //   use ts emsure req.query will be an object with the properties of IncidentType below
   const { group, type, status, state, ch_name, program, prn, ch_id } =
@@ -17,7 +12,7 @@ export const getAllIncidents = async (req: Request, res: Response) => {
   const limit = Number(req.query.limit) || 10;
 
   try {
-    let incidents = await getAll(limit, {
+    let incidents = await IncidentDAO.findAll(limit, {
       group,
       type,
       status,
@@ -45,11 +40,20 @@ export const getIncidentById = async (_req: Request, res: Response) => {
   const { id } = _req.params;
   console.log('id', id);
   try {
-    const incident = await findById(Number(id));
+    const incident = await IncidentDAO.findById(Number(id));
+
+    if (!incident.data) {
+      return sendRestResponse({
+        res,
+        data: null,
+        message: incident.message,
+        status: incident.status,
+      });
+    }
     return sendRestResponse({
       res,
-      data: incident,
-      message: 'Incident retrieved',
+      data: incident.data,
+      message: incident.message,
       status: 200,
     });
   } catch (error) {
@@ -65,10 +69,19 @@ export const getIncidentById = async (_req: Request, res: Response) => {
 export const getIncidentSiblingsById = async (_req: Request, res: Response) => {
   const { id } = _req.params;
   try {
-    const incident = await getIncidentSiblings(Number(id));
+    const incident = await IncidentDAO.findSiblingsById(Number(id));
+
+    if (!incident.data) {
+      return sendRestResponse({
+        res,
+        data: null,
+        message: incident.message,
+        status: incident.status,
+      });
+    }
     return sendRestResponse({
       res,
-      data: incident,
+      data: incident.data,
       message: 'Incident siblings retrieved',
       status: 200,
     });
@@ -87,11 +100,19 @@ export const updateIncidentById = async (req: Request, res: Response) => {
   const incidentObj = req.body;
 
   try {
-    const incident = await updateIncident(Number(id), incidentObj);
+    const incident = await IncidentDAO.updateIncident(Number(id), incidentObj);
+    if (!incident.data) {
+      return sendRestResponse({
+        res,
+        data: null,
+        message: incident.message,
+        status: incident.status,
+      });
+    }
     return sendRestResponse({
       res,
-      data: incident,
-      message: 'Incident updated',
+      data: incident.data,
+      message: incident.message,
       status: 200,
     });
   } catch (error) {

@@ -1,36 +1,59 @@
 import {
-  IncidentSiblingType,
+  IncidentPartialType,
   IncidentType,
   IncidentWithoutSiblingsType,
 } from '../types/incidentType';
 import incidentJson from './incidents.json';
 import { removeSiblingsFromIncident } from '../lib/incidentWithoutSiblings';
 import { MockDatabase } from './mockdatabase';
+import { Incident } from '../models/Incident';
+
+interface IncidentDAOResponse {
+  status: number;
+  message: string;
+  data:
+    | IncidentType
+    | IncidentType[]
+    | IncidentPartialType
+    | IncidentPartialType[]
+    | null;
+}
 
 export class IncidentDAO {
   static async updateIncident(
     id: number,
     incidentObj: IncidentWithoutSiblingsType
-  ): Promise<IncidentWithoutSiblingsType> {
+  ): Promise<IncidentDAOResponse> {
     const result = await MockDatabase.updateIncident(
       id,
       incidentObj as IncidentType
     );
 
     if (result.status !== 200 || !result.data) {
-      throw new Error(result.message);
+      return new Promise((_resolve, reject) => {
+        reject({
+          status: 404,
+          message: 'Incident not found',
+          data: null,
+        });
+      });
     }
 
-    return removeSiblingsFromIncident(result.data);
+    return new Promise((resolve, _reject) => {
+      resolve({
+        status: 200,
+        message: 'Incident updated successfully',
+        data: result.data as IncidentType,
+      });
+    });
   }
 
-  static findAll(
+  static findAll = async (
     limit: number,
     filters: { [key: string]: string }
-  ): IncidentWithoutSiblingsType[] {
+  ): Promise<IncidentWithoutSiblingsType[]> => {
+    const { group, type, status, state, ch_name } = filters;
     const filteredIncidents = incidentJson.filter((incident: IncidentType) => {
-      const { group, type, status, state, ch_name } = filters;
-
       if (group && incident.group !== group) {
         return false;
       }
@@ -47,43 +70,78 @@ export class IncidentDAO {
         return false;
       }
 
-      if (ch_name && !incident.ch_name.includes(filters.ch_name)) {
+      if (ch_name && !incident.ch_name.includes(ch_name)) {
         return false;
       }
 
       return true;
     });
 
-    const incidentsWithoutSiblings = filteredIncidents.map(
-      (incident: IncidentType) => {
-        const incidentWithoutSiblings = removeSiblingsFromIncident(incident);
-        return incidentWithoutSiblings;
-      }
-    );
+    return filteredIncidents.slice(0, limit);
+  };
 
-    return incidentsWithoutSiblings.slice(0, limit);
-  }
-
-  static findById(id: number): IncidentWithoutSiblingsType {
+  static async findById(id: number): Promise<IncidentDAOResponse> {
     const incident = incidentJson.find(
       (incident: IncidentType) => incident.id === id
     );
     if (!incident) {
-      throw new Error('Incident not found');
+      return new Promise((_resolve, reject) => {
+        reject({
+          status: 404,
+          message: 'Incident not found',
+          data: null,
+        });
+      });
     }
-    return removeSiblingsFromIncident(incident);
+    return new Promise((resolve, _reject) => {
+      resolve({
+        status: 200,
+        message: 'Incident retrieved successfully',
+        data: incident as IncidentType,
+      });
+    });
   }
 
-  static findSiblingsById(id: number): Promise<IncidentSiblingType[]> {
+  static findSiblingsById(id: number): Promise<IncidentDAOResponse> {
     const incident = incidentJson.find(
       (incident: IncidentType) => incident.id === id
     );
-    return new Promise((resolve, reject) => {
-      if (incident) {
-        resolve(incident.siblings);
-      } else {
-        reject('Could not find incident');
-      }
+
+    if (!incident) {
+      return new Promise((_resolve, reject) => {
+        reject({
+          status: 404,
+          message: 'Incident not found',
+          data: null,
+        });
+      });
+    }
+
+    const siblingsArr = incident.siblings;
+
+    if (!siblingsArr || siblingsArr.length === 0) {
+      return new Promise((_resolve, reject) => {
+        reject({
+          status: 404,
+          message: 'Incident with id:' + incident.id + ' has no siblings',
+          data: null,
+        });
+      });
+    }
+
+    const siblings = siblingsArr.map((id: number) => {
+      const sibling = incidentJson.find(
+        (incident: IncidentType) => incident.id === id
+      );
+      return sibling;
+    });
+
+    return new Promise((resolve, _reject) => {
+      resolve({
+        status: 200,
+        message: 'Incident siblings retrieved successfully',
+        data: siblings as IncidentType[],
+      });
     });
   }
 
