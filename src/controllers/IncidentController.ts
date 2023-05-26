@@ -90,7 +90,7 @@ export const getIncidentSiblingsById = async (_req: Request, res: Response) => {
       res,
       data: null,
       message: error.message,
-      status: 500,
+      status: error.status,
     });
   }
 };
